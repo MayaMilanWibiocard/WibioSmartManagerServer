@@ -8,6 +8,10 @@ use App\Models\DesktopSecretKeys;
 class DesktopSecretKeysController extends Controller
 {
     
+    public function __construct()
+    {
+        $this->middleware('auth.apikey');
+    }    
     
     /**
      * Display a listing of the resource.

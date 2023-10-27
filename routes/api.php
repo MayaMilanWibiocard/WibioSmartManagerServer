@@ -17,4 +17,4 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::resource('DesktopSecretKeys', \App\Http\Controllers\DesktopSecretKeysController::class);
+Route::resource('DesktopSecretKeys', \App\Http\Controllers\DesktopSecretKeysController::class)->middleware('auth.apikey');
