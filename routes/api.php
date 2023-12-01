@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuardlockWrapperController;
+use App\Http\Controllers\SoftwareVersionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -23,5 +24,8 @@ Route::controller(QuardlockWrapperController::class)->group(function () {
     Route::get('/AuthenticateWithMode/{cardid}/{cardotp}/{mode}', 'AuthenticateWithMode');
     Route::get('/IsTokenKeyLocked/{cardid}/{mode}', 'IsTokenKeyLocked');
     Route::post('/LockTokenKey/{cardid}/{mode}', 'LockTokenKey');
-    //Route::post('/orders', 'store');
+})->middleware('auth.apikey');
+
+Route::controller(SoftwareVersionController::class)->group(function () {
+    Route::get('/checkStable/{name}/{version}', 'checkStable');
 })->middleware('auth.apikey');
