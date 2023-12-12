@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuardlockWrapperController;
 use App\Http\Controllers\SoftwareVersionController;
+use App\Http\Controllers\CardCommandsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -28,4 +29,12 @@ Route::controller(QuardlockWrapperController::class)->group(function () {
 
 Route::controller(SoftwareVersionController::class)->group(function () {
     Route::get('/checkStable/{name}/{version}', 'checkStable');
+})->middleware('auth.apikey');
+
+
+Route::controller(CardCommandsController::class)->group(function () {
+    Route::get('/checkCardByAtr/{atr}', 'checkCardByAtr');
+    Route::get('/getResponseCodes/{id}/{cardVersion}/{appletVersion}/{lang}', 'getResponseCodes');
+    Route::get('/getCommands/{id}/{cardVersion}/{appletVersion}', 'getCommands');
+    Route::get('/getSequence/{id}/{cardVersion}/{appletVersion}/{channel}/{sequenceName}', 'getSequence');
 })->middleware('auth.apikey');
