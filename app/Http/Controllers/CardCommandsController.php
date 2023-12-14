@@ -69,6 +69,7 @@ class CardCommandsController extends Controller
                     ->first();
         
         $commands = $card->commands;
+
         if ($commands)
         {
             return response()->json([

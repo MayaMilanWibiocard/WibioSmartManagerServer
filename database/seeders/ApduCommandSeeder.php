@@ -30,7 +30,7 @@ class ApduCommandSeeder extends Seeder
             'card_type' => 'CardLab Agnosco',
             'card_version' => '1.3',
             'card_applet' => 'BECardOtp',
-            'card_applet_version' => '16.16A'
+            'card_applet_version' => '16.16'
         ]);
         /*SelectBeCard*****************************/
         $apduId = db::table('apdu_commands')->insertGetId([
@@ -100,14 +100,14 @@ class ApduCommandSeeder extends Seeder
             'apdu' => '00 B0 06 00 42',
             'channel' => 'all',
             'requireData' => false,
-            'responseType' => 'string',
+            'responseType' => 'bytes',
             'timeout' => 0,
             'description' => 'Return applet version info'
         ]);       
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{SWversion}',
+            'responseRules' => '{FimwareVersion[0,64], AppletVersion[64,2]}',
             'leftPadding' => null,
             'rightPadding' => '0x00',
             'isBigEndian' => true,
@@ -125,9 +125,8 @@ class ApduCommandSeeder extends Seeder
             'description' => 'Write applet version info'
         ]);
         db::table('apdu_components')->insert([
-            'component' => '{version_info}',
-            'lenght' => 64,
-            'rightPadding' => '0x00',
+            'component' => '{FimwareVersion[0,64], AppletVersion[64,2]}',
+            'lenght' => 66,
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
         ]);
