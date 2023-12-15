@@ -10,4 +10,5 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ApduSequences extends Model
 {
     use HasFactory;
+    protected $with = ['commands'];
 }

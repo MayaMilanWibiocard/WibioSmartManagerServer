@@ -37,4 +37,5 @@ Route::controller(CardCommandsController::class)->group(function () {
     Route::get('/getResponseCodes/{id}/{cardVersion}/{appletVersion}/{lang}', 'getResponseCodes');
     Route::get('/getCommands/{id}/{cardVersion}/{appletVersion}', 'getCommands');
     Route::get('/getSequence/{id}/{cardVersion}/{appletVersion}/{channel}/{sequenceName}', 'getSequence');
+    Route::post('/generateCommand/{id}/{cardVersion}/{appletVersion}/{channel}/{command}', 'generateCommand');
 })->middleware('auth.apikey');

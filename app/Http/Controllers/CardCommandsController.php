@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Resources\CommandResource;
+use Symfony\Component\Uid\Ulid;
+use Illuminate\Support\Str;
+
+use App\Models\ChaKey;
 use App\Models\Card;
 use App\Models\ApduResponseCodes;
-use App\Http\Resources\CommandResource;
-use App\Http\Resources\SequenceResource;
 
 class CardCommandsController extends Controller
 {
@@ -67,15 +70,21 @@ class CardCommandsController extends Controller
                     ->where("card_version", $cardVersion)
                     ->where("card_applet_version", $appletVersion)
                     ->first();
-        
-        $commands = $card->commands;
-
-        if ($commands)
+        $cmds = $card->commands;
+        if ($cmds)
         {
+            $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+            $key = ChaKey::where('keyName', 'webserver')->first();
+            $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+                        CommandResource::collection($cmds)->toJson(),
+                        $nonce,
+                        $nonce,
+                        $key->keyValue
+                    );
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
-                "commands" => CommandResource::collection($commands)
+                "commands" => $nonce.base64_encode($ret)
             ], 200);
         }
         else
@@ -101,13 +110,21 @@ class CardCommandsController extends Controller
             ->whereHas('sequences', function ($query) use ($sequenceName, $channel) {
                 $query->where('apdu_sequences.sequence', $sequenceName)
                     ->where('apdu_sequences.channel', $channel);
-            })->get();
-        if ($commands)
+            })->first();
+        if ($cmds)
         {
+            $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+            $key = ChaKey::where('keyName', 'webserver')->first();
+            $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+                        CommandResource::collection($cmds->sequences)->toJson(),
+                        $nonce,
+                        $nonce,
+                        $key->keyValue
+                    );
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
-                "commands" => SequenceResource::collection($commands)
+                "commands" => $nonce.base64_encode($ret)
             ], 200);
         }
         else
@@ -119,24 +136,74 @@ class CardCommandsController extends Controller
         }    
     }
 
-    public function CommandGenerate($id, $cardVersion, $appletVersion, $channel, $sequenceName, $data)
+    public function generateCommand($id, $cardVersion, $appletVersion, $channel, $command, Request $request)
     {
+        //$nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        //$key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
+        //$ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+        //            '{"userinfo": "Maya Milan;m.milan@wibiocard.com;2024/12/31"}',
+        //            $nonce,
+        //            $nonce,
+        //            $key->keyValue
+        //        );
+        //dd($nonce.base64_encode($ret));
+
+        $nonce = substr($request->data, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $data = base64_decode(substr($request->data, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES));
+        $key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
+        $jsonData = json_decode(
+            sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
+                $data,
+                $nonce,
+                $nonce,
+                $key->keyValue
+            )
+        );
         $card = Card::where("id", $id)
             ->where("card_version", $cardVersion)
             ->where("card_applet_version", $appletVersion)
             ->first();
-        $command = $card
-            ->with(['commands' => function ($query) use ($sequenceName) {
-                $query->where('apdu_sequences.sequence', $sequenceName)
-                    ->where('apdu_sequences.channel', $channel);
+        $cmd = $card
+            ->with(['commands' => function ($query) use ($channel, $command) {
+                $query->where('card_apdus.channel', $channel)
+                        ->where('apdu_commands.name', $command);
             }])
-            ->whereHas('commands', function ($query) use ($sequenceName, $channel) {
-                $query->where('apdu_sequences.sequence', $sequenceName)
-                    ->where('apdu_sequences.channel', $channel);
-            })->first();
-        if ($command)
+            ->whereHas('commands', function ($query) use ($channel, $command) {
+                $query->where('card_apdus.channel', $channel)
+                        ->where('apdu_commands.name', $command);
+            })
+            ->first();
+        if ($cmd)
         {
-
+            $apdu = $cmd->commands[0]->apdu;
+            $components = $cmd->commands[0]->component->component;
+            foreach ($jsonData as $key => $value)
+                $components = str_replace('{'.$key.'}', bin2hex($value), $components);
+            $constants = ApduConstan::where('card_id', $id)->get();
+            foreach ($constants as $constant)
+                $components = str_replace('['.$constant->name.']', $constant->value, $components);
+            $apdu .= $components;
+            
+            $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+            $key = ChaKey::where('keyName', 'webserver')->first();
+            $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+                        $apdu,
+                        $nonce,
+                        $nonce,
+                        $key->keyValue
+                    );
+            return response()->json([
+                "status" => "success",
+                "message" => "Card commands",
+                "commands" => $nonce.base64_encode($ret)
+            ], 200);
         }
+        else
+        {
+            return response()->json([
+                "status" => "error",
+                "message" => "Card is invalid"
+            ], 400);
+        }    
     }
 }
