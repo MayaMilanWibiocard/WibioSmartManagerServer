@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "117f2e26a88286c594305937b0a1ba09",
+    "content-hash": "5698bb6accdc696abb0b20304eac74f0",
     "packages": [
         {
             "name": "artisaninweb/laravel-soap",
@@ -2767,6 +2767,63 @@
                 }
             ],
             "time": "2023-02-08T01:06:31+00:00"
+        },
+        {
+            "name": "pburggraf/crc",
+            "version": "v0.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pburggraf/CRC.git",
+                "reference": "32db88d19b8b26c577794e062f2097348cb0598e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pburggraf/CRC/zipball/32db88d19b8b26c577794e062f2097348cb0598e",
+                "reference": "32db88d19b8b26c577794e062f2097348cb0598e",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.0",
+                "phpstan/phpstan": "^1.0",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PBurggraf\\CRC\\": "src/PBurggraf/CRC/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Philip Burggraf",
+                    "email": "philip@pburggraf.de"
+                }
+            ],
+            "description": "Cyclic redundancy checker (crc) class to calculate crc8, crc16, crc24 and crc32 checksum values",
+            "keywords": [
+                "checksum",
+                "checksum generator",
+                "crc",
+                "crc16",
+                "crc24",
+                "crc32",
+                "crc8",
+                "cyclic redundancy checker",
+                "validation"
+            ],
+            "support": {
+                "issues": "https://github.com/pburggraf/CRC/issues",
+                "source": "https://github.com/pburggraf/CRC/tree/v0.9.0"
+            },
+            "time": "2022-04-10T16:45:23+00:00"
         },
         {
             "name": "phpoption/phpoption",

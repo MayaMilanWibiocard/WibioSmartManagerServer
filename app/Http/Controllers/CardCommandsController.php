@@ -9,8 +9,12 @@ use Illuminate\Support\Str;
 
 use App\Models\Card;
 use App\Models\ChaKey;
+use App\Models\CardApdu;
 use App\Models\ApduConstant;
 use App\Models\ApduResponseCodes;
+
+use PBurggraf\CRC\CRC16\Genibus;
+use \PBurggraf\CRC\CRC32\CRC32;
 
 class CardCommandsController extends Controller
 {
@@ -176,15 +180,41 @@ class CardCommandsController extends Controller
             ->first();
         if ($cmd)
         {
-            $apdu = $cmd->commands[0]->apdu;
+            $apdu = strtoupper(str_replace(' ', '', $cmd->commands[0]->apdu));
             $components = $cmd->commands[0]->component->component;
             foreach ($jsonData as $key => $value)
                 $components = str_replace('{'.$key.'}', bin2hex($value), $components);
             $constants = ApduConstant::where('card_id', $id)->get();
             foreach ($constants as $constant)
-                $components = str_replace('['.$constant->name.']', $constant->value, $components);
-            $apdu .= $components;
-            
+                $components = strtoupper(str_replace('['.$constant->name.']', $constant->value, $components));
+            $crc = "";
+            if ($cmd->commands[0]->crc)
+            {
+                switch($cmd->commands[0]->crc)
+                {
+                    case 'Iso3309Crc16':
+                        $crc16AugCcitt = new Genibus();
+                        $crc = dechex($crc16AugCcitt->calculate($components));
+                        break;
+                    /// add new crc algos as requested
+                }
+            }
+            $apdu .= strtoupper($components.$crc);
+            $crcChannel = CardApdu::where('card_id', $id)
+                                    ->where('apdu_command_id', $cmd->commands[0]->id)
+                                    ->where('channel', $channel)
+                                    ->first()->crc;
+            if ($crcChannel)
+            {
+                switch($crcChannel)
+                {
+                    case 'CRC32':
+                        $crc32 = new CRC32();
+                        $apdu .= strtoupper(dechex($crc32->calculate($apdu)));
+                        break;
+                    /// add new crc algos as requested
+                }
+            }
             $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
             $key = ChaKey::where('keyName', 'webserver')->first();
             $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
@@ -197,7 +227,7 @@ class CardCommandsController extends Controller
                 "status" => "success",
                 "message" => "Card commands",
                 "commands" => $nonce.base64_encode($ret),
-                "uncrypted" => trim(strrev(chunk_split(strrev(str_replace(' ', '', $apdu)),2, ' ')))
+                "uncrypted" => trim(strrev(chunk_split(strrev(str_replace(' ', '', $apdu)),2, ' '))),
             ], 200);
         }
         else

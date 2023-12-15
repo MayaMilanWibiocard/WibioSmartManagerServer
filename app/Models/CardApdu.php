@@ -9,4 +9,5 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class CardApdu extends Pivot
 {
     use HasFactory;
+    protected $table = 'card_apdus';
 }
