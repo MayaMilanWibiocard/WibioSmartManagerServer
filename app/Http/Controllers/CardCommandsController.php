@@ -27,20 +27,15 @@ class CardCommandsController extends Controller
     {
         $card = Card::where("ATR", $atr)->first();
         if ($card)
-        {
             return response()->json([
                 "id" => $card->id,
                 "status" => "success",
                 "message" => "Card is valid"
             ], 200);
-        }
-        else
-        {
-            return response()->json([
-                "status" => "error",
-                "message" => "Card is invalid"
-            ], 400);
-        }   
+        return response()->json([
+            "status" => "error",
+            "message" => "Card is invalid"
+        ], 400);
     }
 
     public function getResponseCodes($id, $cardVersion, $appletVersion, $lang)
@@ -77,37 +72,25 @@ class CardCommandsController extends Controller
                     ->first();
         $cmds = $card->commands;
         if ($cmds)
-        {
-            $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-            $key = ChaKey::where('keyName', 'webserver')->first();
-            $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
-                        CommandResource::collection($cmds)->toJson(),
-                        $nonce,
-                        $nonce,
-                        $key->keyValue
-                    );
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
-                "commands" => $nonce.base64_encode($ret)
+                "commands" => self::ChaChaEncoder(CommandResource::collection($cmds)->toJson()),
+                "uncrypted" => (app()->hasDebugModeEnabled()) ? CommandResource::collection($cmds) : null,
             ], 200);
-        }
-        else
-        {
-            return response()->json([
-                "status" => "error",
-                "message" => "Card is invalid"
-            ], 400);
-        }   
+        return response()->json([
+            "status" => "error",
+            "message" => "Card is invalid"
+        ], 400);
     }
 
     public function getSequence($id, $cardVersion, $appletVersion, $channel, $sequenceName)
     {
         $card = Card::where("id", $id)
-        ->where("card_version", $cardVersion)
-        ->where("card_applet_version", $appletVersion)
-        ->first();
-        $commands = $card
+            ->where("card_version", $cardVersion)
+            ->where("card_applet_version", $appletVersion)
+            ->first();
+        $cmds = $card
             ->with(['sequences' => function ($query) use ($sequenceName, $channel) {
                 $query->where('apdu_sequences.sequence', $sequenceName)
                     ->where('apdu_sequences.channel', $channel);
@@ -117,28 +100,16 @@ class CardCommandsController extends Controller
                     ->where('apdu_sequences.channel', $channel);
             })->first();
         if ($cmds)
-        {
-            $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-            $key = ChaKey::where('keyName', 'webserver')->first();
-            $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
-                        CommandResource::collection($cmds->sequences)->toJson(),
-                        $nonce,
-                        $nonce,
-                        $key->keyValue
-                    );
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
-                "commands" => $nonce.base64_encode($ret)
+                "commands" => self::ChaChaEncoder(CommandResource::collection($cmds->sequences)->toJson()),
+                "uncrypted" => (app()->hasDebugModeEnabled()) ? CommandResource::collection($cmds->sequences) : null,
             ], 200);
-        }
-        else
-        {
-            return response()->json([
-                "status" => "error",
-                "message" => "Card is invalid"
-            ], 400);
-        }    
+        return response()->json([
+            "status" => "error",
+            "message" => "Card is invalid"
+        ], 400);
     }
 
 
@@ -153,17 +124,7 @@ class CardCommandsController extends Controller
     //dd($nonce.base64_encode($ret));
     public function generateCommand($id, $cardVersion, $appletVersion, $channel, $command, Request $request)
     {
-        $nonce = substr($request->data, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-        $data = base64_decode(substr($request->data, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES));
-        $key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
-        $jsonData = json_decode(
-            sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
-                $data,
-                $nonce,
-                $nonce,
-                $key->keyValue
-            )
-        );
+        $jsonData = self::ChaChaDecoder($request->data);
         $card = Card::where("id", $id)
             ->where("card_version", $cardVersion)
             ->where("card_applet_version", $appletVersion)
@@ -181,53 +142,27 @@ class CardCommandsController extends Controller
         if ($cmd)
         {
             $apdu = strtoupper(str_replace(' ', '', $cmd->commands[0]->apdu));
+
             $components = $cmd->commands[0]->component->component;
             foreach ($jsonData as $key => $value)
-                $components = str_replace('{'.$key.'}', bin2hex($value), $components);
+                $components = strtoupper(str_replace('{'.$key.'}', bin2hex($value), $components));
+
             $constants = ApduConstant::where('card_id', $id)->get();
             foreach ($constants as $constant)
                 $components = strtoupper(str_replace('['.$constant->name.']', $constant->value, $components));
-            $crc = "";
-            if ($cmd->commands[0]->crc)
-            {
-                switch($cmd->commands[0]->crc)
-                {
-                    case 'Iso3309Crc16':
-                        $crc16AugCcitt = new Genibus();
-                        $crc = dechex($crc16AugCcitt->calculate($components));
-                        break;
-                    /// add new crc algos as requested
-                }
-            }
-            $apdu .= strtoupper($components.$crc);
+            $apdu .= $components.self::CrcCalucator($components, $cmd->commands[0]->crc);
+
             $crcChannel = CardApdu::where('card_id', $id)
                                     ->where('apdu_command_id', $cmd->commands[0]->id)
                                     ->where('channel', $channel)
                                     ->first()->crc;
-            if ($crcChannel)
-            {
-                switch($crcChannel)
-                {
-                    case 'CRC32':
-                        $crc32 = new CRC32();
-                        $apdu .= strtoupper(dechex($crc32->calculate($apdu)));
-                        break;
-                    /// add new crc algos as requested
-                }
-            }
-            $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-            $key = ChaKey::where('keyName', 'webserver')->first();
-            $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
-                        $apdu,
-                        $nonce,
-                        $nonce,
-                        $key->keyValue
-                    );
+            $apdu .= self::CrcCalucator($apdu, $crcChannel); 
+            
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
-                "commands" => $nonce.base64_encode($ret),
-                "uncrypted" => trim(strrev(chunk_split(strrev(str_replace(' ', '', $apdu)),2, ' '))),
+                "commands" => self::ChaChaEncoder($apdu),
+                "uncrypted" => (app()->hasDebugModeEnabled()) ? trim(strrev(chunk_split(strrev(str_replace(' ', '', $apdu)),2, ' '))) : null,
             ], 200);
         }
         else
@@ -237,5 +172,50 @@ class CardCommandsController extends Controller
                 "message" => "Card is invalid"
             ], 400);
         }    
+    }
+
+    private static function ChaChaDecoder($data)
+    {
+        $nonce = substr($data, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $data = base64_decode(substr($data, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES));
+        $key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
+        $jsonData = json_decode(
+            sodium_crypto_aead_xchacha20poly1305_ietf_decrypt(
+                $data,
+                $nonce,
+                $nonce,
+                $key->keyValue
+            )
+        );
+        return $jsonData;
+    }
+
+    private static function ChaChaEncoder($data)
+    {
+        $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $key = ChaKey::where('keyName', 'webserver')->first();
+        $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+                    $data,
+                    $nonce,
+                    $nonce,
+                    $key->keyValue
+                );
+        return $nonce.base64_encode($ret);        
+    }
+
+    private static function CrcCalucator($data, $crc)
+    {
+        if ($crc == null)
+            return '';   
+        switch($crc)
+        {
+            case 'Iso3309Crc16':
+                $crc16AugCcitt = new Genibus();
+                return strtoupper(dechex($crc16AugCcitt->calculate($data)));
+            case 'CRC32':
+                $crc32 = new CRC32();
+                return strtoupper(dechex($crc32->calculate($data)));
+            /// add new crc algos as requested
+        }
     }
 }
