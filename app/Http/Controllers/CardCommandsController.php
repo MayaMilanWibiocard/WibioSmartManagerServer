@@ -7,8 +7,9 @@ use App\Http\Resources\CommandResource;
 use Symfony\Component\Uid\Ulid;
 use Illuminate\Support\Str;
 
-use App\Models\ChaKey;
 use App\Models\Card;
+use App\Models\ChaKey;
+use App\Models\ApduConstant;
 use App\Models\ApduResponseCodes;
 
 class CardCommandsController extends Controller
@@ -136,18 +137,18 @@ class CardCommandsController extends Controller
         }    
     }
 
+
+    //$nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+    //$key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
+    //$ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
+    //            '{"userinfo": "Maya Milan;m.milan@wibiocard.com;2024/12/31"}',
+    //            $nonce,
+    //            $nonce,
+    //            $key->keyValue
+    //        );
+    //dd($nonce.base64_encode($ret));
     public function generateCommand($id, $cardVersion, $appletVersion, $channel, $command, Request $request)
     {
-        //$nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
-        //$key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
-        //$ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
-        //            '{"userinfo": "Maya Milan;m.milan@wibiocard.com;2024/12/31"}',
-        //            $nonce,
-        //            $nonce,
-        //            $key->keyValue
-        //        );
-        //dd($nonce.base64_encode($ret));
-
         $nonce = substr($request->data, 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
         $data = base64_decode(substr($request->data, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES));
         $key = ChaKey::where('keyName', 'desktopsecretkeys')->first();
@@ -179,7 +180,7 @@ class CardCommandsController extends Controller
             $components = $cmd->commands[0]->component->component;
             foreach ($jsonData as $key => $value)
                 $components = str_replace('{'.$key.'}', bin2hex($value), $components);
-            $constants = ApduConstan::where('card_id', $id)->get();
+            $constants = ApduConstant::where('card_id', $id)->get();
             foreach ($constants as $constant)
                 $components = str_replace('['.$constant->name.']', $constant->value, $components);
             $apdu .= $components;
@@ -195,7 +196,8 @@ class CardCommandsController extends Controller
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
-                "commands" => $nonce.base64_encode($ret)
+                "commands" => $nonce.base64_encode($ret),
+                "uncrypted" => trim(strrev(chunk_split(strrev(str_replace(' ', '', $apdu)),2, ' ')))
             ], 200);
         }
         else
