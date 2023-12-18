@@ -26,7 +26,7 @@ class CardCommandsController extends Controller
 
     public function getSupportedCards()
     {
-        $cards = Card::distinct("ATR", "BTL_NAME")->get();
+        $cards = Card::distinct("ATR", "BTL_NAME")->select("ATR", "BTL_NAME")->get();
         if ($cards)
             return response()->json([
                 "status" => "success",
