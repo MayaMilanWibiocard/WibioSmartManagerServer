@@ -14,7 +14,7 @@ class SoftwareVersionController extends Controller
 
     public function checkVersion(string $name, string $version)
     {
-        $sv = SoftwareVersion::where("name", $name)->where("version", $version)->first();
+        $sv = SoftwareVersion::where("name", $name)->where("version", ">=", $version)->orderBy("version", "DESC")->first();
         if ($sv->is_stable && $sv->is_public && !$sv->is_deprecated && !$sv->is_unsupported)
         {
             return response()->json([
