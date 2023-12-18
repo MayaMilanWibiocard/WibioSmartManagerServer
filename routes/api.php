@@ -28,11 +28,12 @@ Route::controller(QuardlockWrapperController::class)->group(function () {
 })->middleware('auth.apikey');
 
 Route::controller(SoftwareVersionController::class)->group(function () {
-    Route::get('/checkStable/{name}/{version}', 'checkStable');
+    Route::get('/checkVersion/{name}/{version}', 'checkVersion');
 })->middleware('auth.apikey');
 
 
 Route::controller(CardCommandsController::class)->group(function () {
+    Route::get('/getSupportedCards', 'getSupportedCards');
     Route::get('/checkCardByAtr/{atr}', 'checkCardByAtr');
     Route::get('/getResponseCodes/{id}/{cardVersion}/{appletVersion}/{lang}', 'getResponseCodes');
     Route::get('/getCommands/{id}/{cardVersion}/{appletVersion}', 'getCommands');

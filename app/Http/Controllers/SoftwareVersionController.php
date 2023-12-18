@@ -12,7 +12,7 @@ class SoftwareVersionController extends Controller
         $this->middleware('auth.apikey');
     }    
 
-    public function checkStable(string $name, string $version)
+    public function checkVersion(string $name, string $version)
     {
         $sv = SoftwareVersion::where("name", $name)->where("version", $version)->first();
         if ($sv->is_stable && $sv->is_public && !$sv->is_deprecated && !$sv->is_unsupported)

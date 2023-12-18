@@ -23,9 +23,25 @@ class CardCommandsController extends Controller
         $this->middleware('auth.apikey');
     }  
     
+
+    public function getSupportedCards()
+    {
+        $cards = Card::distinct("ATR", "BTL_NAME")->get();
+        if ($cards)
+            return response()->json([
+                "status" => "success",
+                "message" => "Supported cards",
+                "cards" => $cards
+            ], 200);
+        return response()->json([
+            "status" => "error",
+            "message" => "No supported cards"
+        ], 400);
+    }
+
     public function checkCardByAtr(string $atr)
     {
-        $card = Card::where("ATR", $atr)->first();
+        $card = Card::where("ATR", $atr)->orWhere('BTL_NAME', $atr)->first();
         if ($card)
             return response()->json([
                 "id" => $card->id,
@@ -157,7 +173,7 @@ class CardCommandsController extends Controller
                                     ->where('channel', $channel)
                                     ->first()->crc;
             $apdu .= self::CrcCalucator($apdu, $crcChannel); 
-            
+
             return response()->json([
                 "status" => "success",
                 "message" => "Card commands",
@@ -218,4 +234,6 @@ class CardCommandsController extends Controller
             /// add new crc algos as requested
         }
     }
+
+
 }

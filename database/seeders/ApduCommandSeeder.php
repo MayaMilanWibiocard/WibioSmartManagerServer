@@ -27,6 +27,7 @@ class ApduCommandSeeder extends Seeder
 
         $cardId = db::table('cards')->insertGetId([
             'ATR' => '3B-8A-80-01-53-4C-43-4F-53-20-54-3D-43-4C-0D',
+            'BTL_NAME' => 'h2020',
             'card_type' => 'CardLab Agnosco',
             'card_version' => '1.3',
             'card_applet' => 'BECardOtp',

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('cards', function (Blueprint $table) {
             $table->id();
             $table->string('ATR');
+            $table->string('BTL_NAME');
             $table->string('card_type');
             $table->string('card_version');
             $table->string('card_applet');
