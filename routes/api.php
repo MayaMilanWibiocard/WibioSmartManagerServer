@@ -35,8 +35,9 @@ Route::controller(SoftwareVersionController::class)->group(function () {
 Route::controller(CardCommandsController::class)->group(function () {
     Route::get('/getSupportedCards', 'getSupportedCards');
     Route::get('/checkCardByAtr/{atr}', 'checkCardByAtr');
-    Route::get('/getResponseCodes/{id}/{cardVersion}/{appletVersion}/{lang}', 'getResponseCodes');
-    Route::get('/getCommands/{id}/{cardVersion}/{appletVersion}', 'getCommands');
-    Route::get('/getSequence/{id}/{cardVersion}/{appletVersion}/{channel}/{sequenceName}', 'getSequence');
-    Route::post('/generateCommand/{id}/{cardVersion}/{appletVersion}/{channel}/{command}', 'generateCommand');
+    Route::get('/checkCardByAtr/{atr}/{cardVersion}/{appletVersion}', 'checkCardBySwVersions');
+    Route::get('/getResponseCodes/{id}/{lang}', 'getResponseCodes');
+    Route::get('/getCommands/{id}', 'getCommands');
+    Route::get('/getSequence/{id}/{channel}/{sequenceName}', 'getSequence');
+    Route::post('/generateCommand/{id}/{channel}/{command}', 'generateCommand');
 })->middleware('auth.apikey');

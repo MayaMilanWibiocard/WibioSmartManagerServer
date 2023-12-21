@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('card_id')->references('id')->on('cards');
             $table->unsignedBigInteger('apdu_command_id');
             $table->foreign('apdu_command_id')->references('id')->on('apdu_commands');
-            $table->string('responseRules');
+            $table->json('responseRules');
             $table->string('leftPadding')->nullable();
             $table->string('rightPadding')->nullable();
             $table->boolean('isBigEndian')->default(true);
