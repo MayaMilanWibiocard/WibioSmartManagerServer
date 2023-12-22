@@ -15,10 +15,10 @@ class ResponseResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'responseRules' => $this->responseRules,
-            'leftPadding' =>  $this->leftPadding,
-            'rightPadding' => $this->rightPadding,
-            'isBigEndian' => $this->isBigEndian,
+            'ResponseRules' => $this->responseRules,
+            'LeftPadding' =>  $this->leftPadding,
+            'RightPadding' => $this->rightPadding,
+            'IsBigEndian' => $this->isBigEndian,
         ];
     }
 }

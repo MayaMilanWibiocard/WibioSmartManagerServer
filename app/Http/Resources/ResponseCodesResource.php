@@ -15,8 +15,8 @@ class ResponseCodesResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'responseCode' => $this->responseCode,
-            'responseText' =>  $this->responseText,
+            'ResponseCode' => $this->responseCode,
+            'ResponseText' =>  $this->responseText,
         ];
     }
 }

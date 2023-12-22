@@ -28,6 +28,7 @@ class Cryptography {
     public static function ChaChaEncoder($data)
     {
         $nonce = substr(str_replace('-', '', Str::ulid()->toRfc4122()), -SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+        $nonce= "96f0edaf5e5cdda63db7d166";
         $key = ChaKey::where('keyName', 'webserver')->first();
         $ret = sodium_crypto_aead_xchacha20poly1305_ietf_encrypt(
                     $data,
