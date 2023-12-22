@@ -76,7 +76,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{CardId[0,16], CardOtp[15,10], OtpCounter[25,4], OtpSeqId[29,1], OtpSeqName[30,14]}',
+            'responseRules' => '{"CardId": [0, 16], "CardOtp": [15, 10], "OtpSeqId": [29, 1], "OtpCounter": [25, 4], "OtpSeqName": [30, 14]}',
             'leftPadding' => null,
             'rightPadding' => '0x00',
             'isBigEndian' => true,
@@ -108,7 +108,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{FimwareVersion[0,64], AppletVersion[64,2]}',
+            'responseRules' => '{"SWversion": [0, -2], "AppletVersion": [-2, 2]}',
             'leftPadding' => null,
             'rightPadding' => '0x00',
             'isBigEndian' => true,
@@ -167,7 +167,7 @@ class ApduCommandSeeder extends Seeder
             db::table('apdu_responses')->insert([
                 'card_id' => $cardId,
                 'apdu_command_id' => $apduId,
-                'responseRules' => '{RsaPub_'.$i.'}',
+                'responseRules' => '{"RsaPub_'.$i.'": []}',
                 'leftPadding' => null,
                 'rightPadding' => null,
                 'isBigEndian' => true,
@@ -224,7 +224,7 @@ class ApduCommandSeeder extends Seeder
             db::table('apdu_responses')->insert([
                 'card_id' => $cardId,
                 'apdu_command_id' => $apduId,
-                'responseRules' => '{SequenceName[0,14], ExpositionTime[14,2]}',
+                'responseRules' => '{"SequenceName": [0, 14], "ExpositionTime": [14, 2]}',
                 'leftPadding' => null,
                 'rightPadding' => '0x00',
                 'isBigEndian' => true,
@@ -247,7 +247,7 @@ class ApduCommandSeeder extends Seeder
             db::table('apdu_responses')->insert([
                 'card_id' => $cardId,
                 'apdu_command_id' => $apduId,
-                'responseRules' => '{CardID[0,16], CardOtp[16,10], OtpMode[26,len]}',
+                'responseRules' => '{"CardID": [0, 16], "CardOtp": [16, 10], "OtpMode": [26]}',
                 'leftPadding' => null,
                 'rightPadding' => '0x00',
                 'isBigEndian' => true,
@@ -277,7 +277,7 @@ class ApduCommandSeeder extends Seeder
             db::table('apdu_responses')->insert([
                 'card_id' => $cardId,
                 'apdu_command_id' => $apduId,
-                'responseRules' => '{CardID[0,16], CardOtp[16,10], OtpMode[26,len]}',
+                'responseRules' => '{"CardID": [0, 16], "CardOtp": [16, 10], "OtpMode": [26]}',
                 'leftPadding' => null,
                 'rightPadding' => '0x00',
                 'isBigEndian' => true,
@@ -319,7 +319,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{Name[0,";"], Email[(";",";"], ExpireDate[";",10]}',
+            'responseRules' => '{"Name": [0, ";"], "Email": [";", ";"], "ExpireDate": [";", 10]}',
             'leftPadding' => null,
             'rightPadding' => '0x00',
             'isBigEndian' => true,
@@ -358,7 +358,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{Status[0(0:"Not configured", 4:"Configurated", -1:"Configuration in progress")]}',
+            'responseRules' => '{"Status": [0, {"values": {"0": "Not configured", "4": "Configurated", "-1": "Configuration in progress"}}]}',
             'leftPadding' => null,
             'rightPadding' => '0x00',
             'isBigEndian' => true,
@@ -393,7 +393,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{Status[0(0:"Configuration mode", 1:"Enroll mode", 2:"verification mode")]}',
+            'responseRules' => '{"Status": [0, {"values": {"0": "Configuration mode", "1": "Enroll mode", "2": "verification mode"}}]}',
             'leftPadding' => null,
             'rightPadding' => '0x00',
             'isBigEndian' => true,
@@ -589,7 +589,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{Vaultage[0], Percentage[1]}',
+            'responseRules' => '{"Vaultage": [0], "Percentage": [1]}',
             'leftPadding' => null,
             'rightPadding' => null,
             'isBigEndian' => true,
@@ -612,7 +612,7 @@ class ApduCommandSeeder extends Seeder
         db::table('apdu_responses')->insert([
             'card_id' => $cardId,
             'apdu_command_id' => $apduId,
-            'responseRules' => '{UserData}',
+            'responseRules' => '{"UserData": []}',
             'leftPadding' => null,
             'rightPadding' => null,
             'isBigEndian' => true,
@@ -657,7 +657,7 @@ class ApduCommandSeeder extends Seeder
             db::table('apdu_responses')->insert([
                 'card_id' => $cardId,
                 'apdu_command_id' => $apduId,
-                'responseRules' => '{FingerRemaining[0], FingerId[1]}',
+                'responseRules' => '{"FingerId": [1], "FingerRemaining": [0]}',
                 'leftPadding' => null,
                 'rightPadding' => null,
                 'isBigEndian' => true,

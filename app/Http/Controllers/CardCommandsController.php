@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Http\Resources\CommandResource;
 use App\Helpers\Cryptography;
+
+use App\Http\Resources\CommandResource;
+use App\Http\Resources\ResponseCodesResource;
 
 use App\Models\Card;
 use App\Models\CardApdu;
@@ -127,7 +129,8 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "status" => "success",
                     "message" => "Card responses",
-                    "responses" => $codes
+                    "responses" => Cryptography::ChaChaEncoder(ResponseCodesResource::collection($codes)->toJson()),
+                    "uncrypted" => (app()->hasDebugModeEnabled()) ? ResponseCodesResource::collection($codes) : null,
                 ], 200);
             }
             else
@@ -174,7 +177,7 @@ class CardCommandsController extends Controller
         }
     }
 
-    public function getSequence($id, $channel, $sequenceName)    /////NICE TO HAVE -> calculate channel crc directly
+    public function getSequence($id, $channel, $sequenceName) 
     {
         try
         {
