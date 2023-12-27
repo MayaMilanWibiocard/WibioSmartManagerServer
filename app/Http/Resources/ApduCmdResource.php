@@ -7,11 +7,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ApduCmdResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    protected $preserveKeys = true;
+    
     public function toArray(Request $request): array
     {
         return parent::toArray($request);

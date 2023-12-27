@@ -14,11 +14,8 @@ use App\Helpers\Cryptography;
 
 class CommandResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    protected $preserveKeys = true;
+    
     public function toArray(Request $request): array
     {
         $channelCrc = $this->apdus->where("channel",$request->channel)->first();

@@ -7,11 +7,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ResponseCodesResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    protected $preserveKeys = true;
+    
     public function toArray(Request $request): array
     {
         return [

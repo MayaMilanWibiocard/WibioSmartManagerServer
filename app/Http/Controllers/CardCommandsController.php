@@ -62,7 +62,7 @@ class CardCommandsController extends Controller
                 }
                 return response()->json([
                     "Count" => $card->count(),
-                    "Id" => ($card->count() ==1) ? $card->first()->id: null,
+                    "Id" => $card->first()->id, //($card->count() ==1) ? $card->first()->id: null,
                     "GetVersion" => ($card->count() ==1) ? null: Cryptography::ChaChaEncoder(CommandResource::collection($cmds)->toJson()),
                     "Uncrypted" => (app()->hasDebugModeEnabled() && $card->count() > 1) ? CommandResource::collection($cmds) : null,
                     "Status" => "success",
@@ -185,7 +185,8 @@ class CardCommandsController extends Controller
             $cmds = $card
                 ->with(['sequences' => function ($query) use ($sequenceName, $channel) {
                     $query->where('apdu_sequences.sequence', $sequenceName)
-                        ->where('apdu_sequences.channel', $channel);
+                        ->where('apdu_sequences.channel', $channel)
+                        ->orderBy('order_of_execution', 'ASC');
                 }])
                 ->whereHas('sequences', function ($query) use ($sequenceName, $channel) {
                     $query->where('apdu_sequences.sequence', $sequenceName)
