@@ -38,6 +38,7 @@ Route::controller(CardCommandsController::class)->group(function () {
     Route::get('/checkCardByAtr/{atr}/{cardVersion}/{appletVersion}', 'checkCardBySwVersions');
     Route::get('/getResponseCodes/{id}/{lang}', 'getResponseCodes');
     Route::get('/getCommands/{id}', 'getCommands');
+    Route::get('/getCommand/{id}/{channel}/{command}', 'getCommand');
     Route::get('/getSequence/{id}/{channel}/{sequenceName}', 'getSequence');
     Route::post('/generateCommand/{id}/{channel}/{command}', 'generateCommand');
 })->middleware('auth.apikey');

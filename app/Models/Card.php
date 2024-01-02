@@ -19,6 +19,16 @@ class Card extends Model
         return $this->belongsToMany(ApduCommand::class, 'card_apdus');
     }
 
+    public function commandsNFC(): BelongsToMany
+    {
+        return $this->belongsToMany(ApduCommand::class, 'card_apdus')->where('card_apdus.channel', 'NFC');
+    }
+
+    public function commandsBTL(): BelongsToMany
+    {
+        return $this->belongsToMany(ApduCommand::class, 'card_apdus')->where('card_apdus.channel', 'NFC');
+    }
+
     public function sequences(): BelongsToMany
     {
         return $this->belongsToMany(ApduCommand::class, 'apdu_sequences');

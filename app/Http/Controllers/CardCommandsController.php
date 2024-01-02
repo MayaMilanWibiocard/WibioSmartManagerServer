@@ -38,7 +38,7 @@ class CardCommandsController extends Controller
             return response()->json([
                 "Status" => "error",
                 "Message" => "No supported cards"
-            ], 400);
+            ], 200);
         }
         catch(\Exception $e)
         {
@@ -72,7 +72,7 @@ class CardCommandsController extends Controller
             return response()->json([
                 "Status" => "error",
                 "Message" => "Card is invalid"
-            ], 400);
+            ], 200);
         }
         catch(\Exception $e)
         {
@@ -105,7 +105,7 @@ class CardCommandsController extends Controller
             return response()->json([
                 "Status" => "error",
                 "Message" => "Card is invalid"
-            ], 400);
+            ], 200);
         }
         catch(\Exception $e)
         {
@@ -129,7 +129,7 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "Status" => "success",
                     "Message" => "Card responses",
-                    "Responses" => Cryptography::ChaChaEncoder(ResponseCodesResource::collection($codes)->toJson()),
+                    "Response" => Cryptography::ChaChaEncoder(ResponseCodesResource::collection($codes)->toJson()),
                     "Uncrypted" => (app()->hasDebugModeEnabled()) ? ResponseCodesResource::collection($codes) : null,
                 ], 200);
             }
@@ -138,7 +138,7 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "Status" => "error",
                     "Message" => "Card is invalid"
-                ], 400);
+                ], 200);
             }   
         }
         catch(\Exception $e)
@@ -160,13 +160,43 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "Status" => "success",
                     "Message" => "Card commands",
-                    "Commands" => Cryptography::ChaChaEncoder(CommandResource::collection($cmds)->toJson()),
+                    "Response" => Cryptography::ChaChaEncoder(CommandResource::collection($cmds)->toJson()),
                     "Uncrypted" => (app()->hasDebugModeEnabled()) ? CommandResource::collection($cmds) : null,
                 ], 200);
             return response()->json([
                 "Status" => "error",
                 "Message" => "Card is invalid"
+            ], 200);
+        }
+        catch(\Exception $e)
+        {
+            return response()->json([
+                "Status" => "error",
+                "Message" => (app()->hasDebugModeEnabled())?$e->getMessage():""
             ], 400);
+        }
+    }
+
+    public function getCommand($id, $channel, $command)
+    {
+        try
+        {
+            $card = Card::find($id);
+            if ($channel == "BTL")
+                $cmds = $card->commandsBTL->where('name', $command);
+            else 
+                $cmds = $card->commandsNFC->where('name', $command);
+            if ($cmds)
+                return response()->json([
+                    "Status" => "success",
+                    "Message" => "Card command",
+                    "Response" => Cryptography::ChaChaEncoder(CommandResource::collection($cmds)->toJson()),
+                    "Uncrypted" => (app()->hasDebugModeEnabled()) ? CommandResource::collection($cmds) : null,
+                ], 200);
+            return response()->json([
+                "Status" => "error",
+                "Message" => "Card is invalid"
+            ], 200);
         }
         catch(\Exception $e)
         {
@@ -192,18 +222,17 @@ class CardCommandsController extends Controller
                     $query->where('apdu_sequences.sequence', $sequenceName)
                         ->where('apdu_sequences.channel', $channel);
                 })->first();
-            
             if ($cmds)
                 return response()->json([
                     "Status" => "success",
                     "Message" => "Card commands",
-                    "Commands" => Cryptography::ChaChaEncoder(CommandResource::collection($cmds->sequences)->toJson()),
+                    "Response" => Cryptography::ChaChaEncoder(CommandResource::collection($cmds->sequences)->toJson()),
                     "Uncrypted" => (app()->hasDebugModeEnabled()) ? CommandResource::collection($cmds->sequences) : null,
                 ], 200);
             return response()->json([
                 "Status" => "error",
                 "Message" => "Card is invalid"
-            ], 400);
+            ], 200);
         }
         catch(\Exception $e)
         {
@@ -253,7 +282,7 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "Status" => "success",
                     "Message" => "Card commands",
-                    "Commands" => Cryptography::ChaChaEncoder($apdu),
+                    "Response" => Cryptography::ChaChaEncoder($apdu),
                     "Uncrypted" => (app()->hasDebugModeEnabled()) ? trim(strrev(chunk_split(strrev(str_replace(' ', '', $apdu)),2, ' '))) : null,
                 ], 200);
             }
@@ -262,7 +291,7 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "Status" => "error",
                     "Message" => "Card is invalid"
-                ], 400);
+                ], 200);
             }    
         }
         catch(\Exception $e)

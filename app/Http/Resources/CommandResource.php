@@ -14,7 +14,6 @@ use App\Helpers\Cryptography;
 
 class CommandResource extends JsonResource
 {
-    protected $preserveKeys = true;
     
     public function toArray(Request $request): array
     {
