@@ -34,8 +34,8 @@ Route::controller(SoftwareVersionController::class)->group(function () {
 
 Route::controller(CardCommandsController::class)->group(function () {
     Route::get('/getSupportedCards', 'getSupportedCards');
-    Route::get('/checkCardByAtr/{atr}', 'checkCardByAtr');
-    Route::get('/checkCardByAtr/{atr}/{cardVersion}/{appletVersion}', 'checkCardBySwVersions');
+    Route::get('/checkCardByAtr/{channel}/{atr}', 'checkCardByAtr');
+    Route::get('/checkCardByVersion/{atr}/{cardVersion}/{appletVersion}', 'checkCardBySwVersions');
     Route::get('/getResponseCodes/{id}/{lang}', 'getResponseCodes');
     Route::get('/getCommands/{id}', 'getCommands');
     Route::get('/getCommand/{id}/{channel}/{command}', 'getCommand');

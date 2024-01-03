@@ -45,4 +45,5 @@ class ApduCommand extends Model
     {
         return $this->hasMany(CardApdu::class)->select('channel AS ca_channel', 'crc AS ca_crc');
     }
+
 }

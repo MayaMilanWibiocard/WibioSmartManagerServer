@@ -49,20 +49,21 @@ class CardCommandsController extends Controller
         }
     }
 
-    public function checkCardByAtr(string $atr)
+    public function checkCardByAtr(string $channel, string $atr)
     {
         try{
-            $card = Card::where("ATR", $atr)->orWhere('BTL_NAME', $atr)->get();
+            $card = Card::where("ATR", $atr)->orWhere('BTL_NAME', $atr)->all();
             if ($card)
             {
                 if ($card->count() >1)
                 {
                     $card_apdu = CardApdu::where('card_id', $card->modelKeys())->pluck("apdu_command_id");
-                    $cmds = ApduCommand::where('name', 'ReadVersionInfo')->whereIn('id', $card_apdu)->distinct()->get();
-                }
+                    $cmds = ApduCommand::where('name', 'ReadVersionInfo')->whereIn('id', $card_apdu)->distinct()->get();                }
                 return response()->json([
                     "Count" => $card->count(),
-                    "Id" => $card->first()->id, //($card->count() ==1) ? $card->first()->id: null,
+                    "Id" => $card->first()->id,
+                    "SWversion" => ($card->count() >1)? "": $card->first()->card_version,
+                    "AppletVersion" => ($card->count() >1)? "": $card->first()->card_applet_version,
                     "GetVersion" => ($card->count() ==1) ? null: Cryptography::ChaChaEncoder(CommandResource::collection($cmds)->toJson()),
                     "Uncrypted" => (app()->hasDebugModeEnabled() && $card->count() > 1) ? CommandResource::collection($cmds) : null,
                     "Status" => "success",
@@ -99,7 +100,9 @@ class CardCommandsController extends Controller
                 return response()->json([
                     "Status" => "success",
                     "Message" => "Card is valid",
-                    "Id" => $card->id
+                    "Id" => $card->id,
+                    "SWversion" => $card->card_version,
+                    "AppletVersion" => $card->card_applet_version
                 ], 200);
             }
             return response()->json([
