@@ -25,6 +25,7 @@ class ClearDbCache extends Command
      */
     public function handle()
     {
+        $this->call('modelCache:clear', ['--model' => 'App\Models\CardUserData']);
         $this->call('modelCache:clear', ['--model' => 'App\Models\ApduCommand']);
         $this->call('modelCache:clear', ['--model' => 'App\Models\ApduComponent']);
         $this->call('modelCache:clear', ['--model' => 'App\Models\ApduConstant']);

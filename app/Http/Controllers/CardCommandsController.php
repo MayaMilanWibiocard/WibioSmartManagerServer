@@ -7,7 +7,9 @@ use App\Helpers\Cryptography;
 
 use App\Http\Resources\CommandResource;
 use App\Http\Resources\ResponseCodesResource;
+use App\Http\Resources\CardUserDataResource;
 
+use App\Models\CardUserData;
 use App\Models\Card;
 use App\Models\CardApdu;
 use App\Models\ApduCommand;
@@ -48,6 +50,33 @@ class CardCommandsController extends Controller
             ], 400);
         }
     }
+
+    public function getUserData()
+    {
+        try{
+            $cud = CardUserData::get();
+            if ($cud)
+                return response()->json([
+                    "Status" => "success",
+                    "Message" => "UserDataDefinition",
+                    "Response" => Cryptography::ChaChaEncoder(CardUserDataResource::collection($cud)->toJson()),
+                    "Uncrypted" => (app()->hasDebugModeEnabled()) ? CardUserDataResource::collection($cud) : null,
+                ], 200);
+            return response()->json([
+                "Status" => "error",
+                "Message" => "No user data definition"
+            ], 200);
+        }
+        catch(\Exception $e)
+        {
+            return response()->json([
+                "Status" => "error",
+                "Message" => (app()->hasDebugModeEnabled())?$e->getMessage():""
+            ], 400);
+        }
+    }
+
+
 
     public function checkCardByAtr(string $channel, string $atr)
     {

@@ -21,5 +21,14 @@ class DatabaseSeeder extends Seeder
         //     DB::table('desktop_secret_keys')->insert([
         //         'oneShotSecretKey' => Str::random(24)
         //     ]);
+        $this->call(CardsTableSeeder::class);
+        $this->call(CardApdusTableSeeder::class);
+        $this->call(ApduCommandsTableSeeder::class);
+        $this->call(ApduSequencesTableSeeder::class);
+        $this->call(ApduResponsesTableSeeder::class);
+        $this->call(ApduComponentsTableSeeder::class);
+        $this->call(ApduConstantsTableSeeder::class);
+        $this->call(ApduResponseCodesTableSeeder::class);
+        $this->call(CardUserDataTableSeeder::class);
     }
 }
