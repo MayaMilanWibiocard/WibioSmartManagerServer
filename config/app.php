@@ -187,6 +187,7 @@ return [
         // 'Example' => App\Facades\Example::class,
         'Str' => Illuminate\Support\Str::class,
         'Cryptography' => App\Helpers\Cryptography::class,
+        'Redis' => Illuminate\Support\Facades\Redis::class,
     ])->toArray(),
 
 ];
