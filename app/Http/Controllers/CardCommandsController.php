@@ -87,7 +87,8 @@ class CardCommandsController extends Controller
                 if ($card->count() >1)
                 {
                     $card_apdu = CardApdu::where('card_id', $card->modelKeys())->pluck("apdu_command_id");
-                    $cmds = ApduCommand::where('name', 'ReadVersionInfo')->whereIn('id', $card_apdu)->distinct()->get();                }
+                    $cmds = ApduCommand::where('name', 'ReadVersionInfo')->whereIn('id', $card_apdu)->distinct()->get();                
+                }
                 return response()->json([
                     "Count" => $card->count(),
                     "Id" => $card->first()->id,
